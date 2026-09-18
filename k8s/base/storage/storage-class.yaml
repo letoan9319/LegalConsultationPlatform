@@ -1,0 +1,13 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: oci-bv
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+provisioner: oracle.io/oci-block-volume
+parameters:
+  volumeType: I
+  tier: Standard
+reclaimPolicy: Retain
+allowVolumeExpansion: true
+volumeBindingMode: Immediate

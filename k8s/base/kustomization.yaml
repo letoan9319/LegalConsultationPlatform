@@ -1,0 +1,29 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: production
+
+resources:
+  # Namespaces
+  - namespaces.yaml
+
+  # Storage
+  - storage/storage-class.yaml
+
+  # Network policies
+  - network/network-policies.yaml
+
+  # PostgreSQL
+  - postgresql/postgresql.yaml
+  - postgresql/service.yaml
+  - postgresql/pgbouncer.yaml
+
+  # Redis
+  - redis/redis.yaml
+
+configMapGenerator:
+  - name: cluster-info
+    literals:
+      - cluster-name=legal-k3s
+      - environment=production
+      - version=1.0.0
