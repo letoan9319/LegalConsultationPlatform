@@ -16,7 +16,7 @@ class MLRollbackTrigger:
             from kubernetes import config
             try:
                 config.load_incluster_config()
-            except:
+            except ImportError:
                 config.load_kube_config()
             self.arog_rollouts_client = client.CustomObjectsApi()
         except Exception as e:
