@@ -31,10 +31,37 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str, token: str):
         await websocket.close(code=4001, reason="Invalid token payload")
         return
 
-    # Authorization: Verify user is part of this session
-    # Note: In production, query the database to verify session membership
-    # For now, we trust the authenticated token and session_id match
-    # Full implementation would check: session.customer_id == user_id or session.lawyer_id == user_id
+    # Validate sender_type from token - must be CUSTOMER or LAWYER
+    sender_type = payload.get("role")
+    if sender_type not in ("CUSTOMER", "LAWYER", "ADMIN"):
+        await websocket.close(code=4002, reason="Invalid role in token")
+        return
+
+    # Authorization: Verify user is part of this session via database query
+    # This prevents unauthorized access to other users' sessions
+    from ..db.connection import get_db
+    from ..db.repositories import SessionRepository
+    from uuid import UUID
+
+    try:
+        session_uuid = UUID(session_id)
+    except ValueError:
+        await websocket.close(code=4003, reason="Invalid session ID")
+        return
+
+    async for db in get_db():
+        repo = SessionRepository(db)
+        session = await repo.get_by_id(session_uuid)
+
+        if not session:
+            await websocket.close(code=4004, reason="Session not found")
+            return
+
+        # Verify user is either customer or lawyer of this session
+        if str(session.customer_id) != user_id and str(session.lawyer_id or "") != user_id:
+            await websocket.close(code=4003, reason="Not authorized for this session")
+            return
+        break
 
     await manager.connect(websocket, session_id)
 
@@ -51,9 +78,6 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str, token: str):
                     continue
                 if len(content) > MAX_CONTENT_LENGTH:
                     content = content[:MAX_CONTENT_LENGTH]
-
-                # Use server-determined sender_type from token, not client data
-                sender_type = payload.get("role", "SYSTEM")
 
                 await manager.broadcast_to_session(
                     session_id,
