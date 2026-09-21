@@ -1,41 +1,37 @@
-from sqlalchemy import Column, String, DateTime, Enum as SQLEnum, ForeignKey, Text, ARRAY
+from sqlalchemy.orm import DeclarativeBase, relationship
+from sqlalchemy import Column, String, DateTime, Enum as SQLEnum, ForeignKey, Text, ARRAY, Boolean, Numeric
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
 from datetime import datetime
 import uuid
 import enum
-from .user import Base
 
 
-class SenderType(str, enum.Enum):
+class Base(DeclarativeBase):
+    pass
+
+
+class UserRole(str, enum.Enum):
     CUSTOMER = "CUSTOMER"
     LAWYER = "LAWYER"
-    AI_ASSISTANT = "AI_ASSISTANT"
-    SYSTEM = "SYSTEM"
+    ADMIN = "ADMIN"
 
 
-class ContentType(str, enum.Enum):
-    TEXT = "TEXT"
-    IMAGE = "IMAGE"
-    DOCUMENT = "DOCUMENT"
-    LINK = "LINK"
-    SYSTEM_EVENT = "SYSTEM_EVENT"
-
-
-class ChatMessage(Base):
-    __tablename__ = "chat_messages"
+class User(Base):
+    __tablename__ = "users"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    session_id = Column(UUID(as_uuid=True), ForeignKey("consultation_sessions.id"), nullable=False)
-    sender_type = Column(SQLEnum(SenderType), nullable=False)
-    sender_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
-    content = Column(Text, nullable=False)
-    content_type = Column(SQLEnum(ContentType), default=ContentType.TEXT)
-    attachments = Column(ARRAY(String), default=[])
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    password_hash = Column(String(255), nullable=False)
+    full_name = Column(String(255), nullable=False)
+    role = Column(SQLEnum(UserRole), nullable=False)
+    phone = Column(String(20), nullable=True)
+    avatar_url = Column(String(500), nullable=True)
+    is_active = Column(Boolean, default=True)
+    is_verified = Column(Boolean, default=False)
+    license_number = Column(String(50), nullable=True)
+    specializations = Column(ARRAY(String), default=[])
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-
-    # Relationships
-    session = relationship("ConsultationSession", back_populates="messages")
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def __repr__(self):
-        return f"<ChatMessage {self.id}>"
+        return f"<User {self.email}>"

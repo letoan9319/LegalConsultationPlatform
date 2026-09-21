@@ -1,68 +1,40 @@
-from sqlalchemy import Column, String, DateTime, Enum as SQLEnum, ForeignKey, Numeric
+from sqlalchemy import Column, String, DateTime, Enum as SQLEnum, ForeignKey, Text, ARRAY
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
-import uuid
 import enum
 from .user import Base
 
 
-class LegalDomain(str, enum.Enum):
-    CIVIL = "CIVIL"
-    CRIMINAL = "CRIMINAL"
-    LAND = "LAND"
-    LABOR = "LABOR"
-    COMMERCIAL = "COMMERCIAL"
-    FAMILY = "FAMILY"
-    INTELLECTUAL = "INTELLECTUAL"
-    TAX = "TAX"
-    ADMINISTRATIVE = "ADMINISTRATIVE"
-    INSURANCE = "INSURANCE"
+class SenderType(str, enum.Enum):
+    CUSTOMER = "CUSTOMER"
+    LAWYER = "LAWYER"
+    AI_ASSISTANT = "AI_ASSISTANT"
+    SYSTEM = "SYSTEM"
 
 
-class SessionType(str, enum.Enum):
-    INITIAL = "INITIAL"
-    FOLLOWUP = "FOLLOWUP"
-    EMERGENCY = "EMERGENCY"
+class ContentType(str, enum.Enum):
+    TEXT = "TEXT"
+    IMAGE = "IMAGE"
+    DOCUMENT = "DOCUMENT"
+    LINK = "LINK"
+    SYSTEM_EVENT = "SYSTEM_EVENT"
 
 
-class SessionStatus(str, enum.Enum):
-    CREATED = "CREATED"
-    ASSIGNED = "ASSIGNED"
-    STARTED = "STARTED"
-    WAITING_PAYMENT = "WAITING_PAYMENT"
-    COMPLETED = "COMPLETED"
-    CANCELLED = "CANCELLED"
-    EXPIRED = "EXPIRED"
-    ESCALATED = "ESCALATED"
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
 
-
-class PricingType(str, enum.Enum):
-    FREE = "FREE"
-    PAID_HOURLY = "PAID_HOURLY"
-    PAID_FIXED = "PAID_FIXED"
-    SUBSCRIPTION = "SUBSCRIPTION"
-
-
-class ConsultationSession(Base):
-    __tablename__ = "consultation_sessions"
-
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    customer_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    lawyer_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
-    legal_domain = Column(SQLEnum(LegalDomain), nullable=False)
-    status = Column(SQLEnum(SessionStatus), nullable=False, default=SessionStatus.CREATED)
-    session_type = Column(SQLEnum(SessionType), nullable=False, default=SessionType.INITIAL)
-    pricing_type = Column(SQLEnum(PricingType), nullable=True)
-    price_amount = Column(Numeric(12, 2), nullable=True)
-    price_currency = Column(String(3), default="VND")
+    id = Column(UUID(as_uuid=True), primary_key=True)
+    session_id = Column(UUID(as_uuid=True), ForeignKey("consultation_sessions.id"), nullable=False)
+    sender_type = Column(SQLEnum(SenderType), nullable=False)
+    sender_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    content = Column(Text, nullable=False)
+    content_type = Column(SQLEnum(ContentType), default=ContentType.TEXT)
+    attachments = Column(ARRAY(String), default=[])
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
-    customer = relationship("User", foreign_keys=[customer_id])
-    lawyer = relationship("User", foreign_keys=[lawyer_id])
-    messages = relationship("ChatMessage", back_populates="session", order_by="ChatMessage.created_at")
+    session = relationship("ConsultationSession", back_populates="messages")
 
     def __repr__(self):
-        return f"<ConsultationSession {self.id}>"
+        return f"<ChatMessage {self.id}>"
