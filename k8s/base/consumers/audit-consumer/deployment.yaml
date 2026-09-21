@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: audit-consumer
+  namespace: production
+  labels:
+    app: audit-consumer
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: audit-consumer
+  template:
+    metadata:
+      labels:
+        app: audit-consumer
+    spec:
+      containers:
+        - name: audit-consumer
+          image: ghcr.io/legal-consult/audit-consumer:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "legal-kafka-cluster-brokers:9092"
+            - name: KAFKA_GROUP_ID
+              value: "audit-log-consumer"
+            - name: SCHEMA_REGISTRY_URL
+              value: "http://schema-registry:8081"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: legal-db-secrets
+                  key: url
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            exec:
+              command: ["python", "-c", "import sys; sys.exit(0)"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command: ["python", "-c", "import sys; sys.exit(0)"]
+            initialDelaySeconds: 10
+            periodSeconds: 5

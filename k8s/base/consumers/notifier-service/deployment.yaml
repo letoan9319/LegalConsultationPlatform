@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notifier-service
+  namespace: production
+  labels:
+    app: notifier-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: notifier-service
+  template:
+    metadata:
+      labels:
+        app: notifier-service
+    spec:
+      containers:
+        - name: notifier-service
+          image: ghcr.io/legal-consult/notifier-service:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "legal-kafka-cluster-brokers:9092"
+            - name: KAFKA_GROUP_ID
+              value: "notifier-service"
+            - name: SCHEMA_REGISTRY_URL
+              value: "http://schema-registry:8081"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
+          livenessProbe:
+            exec:
+              command: ["python", "-c", "import sys; sys.exit(0)"]
+            initialDelaySeconds: 30
+            periodSeconds: 10

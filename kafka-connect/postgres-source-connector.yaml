@@ -1,0 +1,26 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnector
+metadata:
+  name: legal-postgres-source
+  labels:
+    strimzi.io/cluster: legal-kafka
+spec:
+  class: io.debezium.connector.postgresql.PostgresConnector
+  tasksMax: 3
+  config:
+    connector.class: io.debezium.connector.postgresql.PostgresConnector
+    database.hostname: postgresql
+    database.port: "5432"
+    database.user: debezium
+    database.password: ${KAFKA_CONNECT_PASSWORD}
+    database.dbname: legaldb
+    database.server.name: legaldb
+    table.include.list: "public.consultation_sessions,public.chat_messages,public.users"
+    topic.prefix: dbserver
+    snapshot.mode: initial
+    transforms: extractKey,addPrefix
+    transforms.extractKey.type: org.apache.kafka.connect.transforms.ValueToKey
+    transforms.extractKey.fields: id
+    transforms.addPrefix.type: org.apache.kafka.connect.transforms.RegexRouter
+    transforms.addPrefix.regex: "(.*)"
+    transforms.addPrefix.replacement: "db-sync.$1"
