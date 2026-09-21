@@ -1,4 +1,4 @@
-# Kafka Cluster (Strimzi)
+# Kafka Cluster - Production Ready
 apiVersion: kafka.strimzi.io/v1beta2
 kind: Kafka
 metadata:
@@ -7,7 +7,7 @@ metadata:
 spec:
   kafka:
     version: 3.6.0
-    replicas: 2
+    replicas: 3
     listeners:
       - name: plain
         port: 9092
@@ -21,12 +21,14 @@ spec:
           type: tls
       - name: external
         port: 9094
-        type: loadbalancer
-        tls: false
+        type: clusterip
+        tls: true
+        authentication:
+          type: tls
     config:
-      offsets.topic.replication.factor: 2
-      transaction.state.log.replication.factor: 2
-      transaction.state.log.min.isr: 1
+      offsets.topic.replication.factor: 3
+      transaction.state.log.replication.factor: 3
+      transaction.state.log.min.isr: 2
       num.network.threads: 3
       num.io.threads: 8
       socket.send.buffer.bytes: 102400
@@ -38,7 +40,7 @@ spec:
       auto.create.topics.enable: false
     storage:
       type: persistent-claim
-      size: 10Gi
+      size: 20Gi
       deleteClaim: false
     resources:
       requests:
@@ -81,11 +83,11 @@ metadata:
     strimzi.io/cluster: legal-kafka
 spec:
   partitions: 6
-  replicas: 2
+  replicas: 3
   config:
     retention.ms: 604800000
     cleanup.policy: delete
-    min.insync.replicas: 1
+    min.insync.replicas: 2
 ---
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaTopic
@@ -95,11 +97,11 @@ metadata:
     strimzi.io/cluster: legal-kafka
 spec:
   partitions: 12
-  replicas: 2
+  replicas: 3
   config:
     retention.ms: 2592000000
     cleanup.policy: delete
-    min.insync.replicas: 1
+    min.insync.replicas: 2
 ---
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaTopic
@@ -109,11 +111,11 @@ metadata:
     strimzi.io/cluster: legal-kafka
 spec:
   partitions: 6
-  replicas: 2
+  replicas: 3
   config:
     retention.ms: 7776000000
     cleanup.policy: delete
-    min.insync.replicas: 1
+    min.insync.replicas: 2
 ---
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaTopic
@@ -123,11 +125,11 @@ metadata:
     strimzi.io/cluster: legal-kafka
 spec:
   partitions: 6
-  replicas: 2
+  replicas: 3
   config:
     retention.ms: 31536000000
     cleanup.policy: delete
-    min.insync.replicas: 1
+    min.insync.replicas: 2
 ---
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaTopic
@@ -137,13 +139,13 @@ metadata:
     strimzi.io/cluster: legal-kafka
 spec:
   partitions: 3
-  replicas: 1
+  replicas: 3
   config:
     retention.ms: 604800000
     cleanup.policy: delete
-    min.insync.replicas: 1
+    min.insync.replicas: 2
 ---
-# Kafka Users
+# Kafka Users - Scoped permissions
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaUser
 metadata:
@@ -171,12 +173,6 @@ spec:
       - resource:
           type: topic
           name: ai.request
-        operations:
-          - Write
-          - Describe
-      - resource:
-          type: topic
-          name: audit.log
         operations:
           - Write
           - Describe

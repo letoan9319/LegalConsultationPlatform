@@ -1,4 +1,4 @@
-# Strimzi Kafka Operator
+# Strimzi Kafka Operator - Production Ready
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -20,7 +20,6 @@ rules:
       - ""
     resources:
       - configmaps
-      - secrets
     verbs:
       - get
       - list
@@ -122,6 +121,40 @@ rules:
       - patch
       - update
 ---
+# Namespaced role for secrets - restricted to specific namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: strimzi-cluster-operator-secrets
+  namespace: production
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - delete
+      - patch
+      - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: strimzi-cluster-operator-secrets-binding
+  namespace: production
+roleRef:
+  name: strimzi-cluster-operator-secrets
+  kind: Role
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+  - name: strimzi-cluster-operator
+    namespace: strimzi
+    kind: ServiceAccount
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -166,8 +199,6 @@ spec:
               value: production
             - name: STRIMZI_FULL_RECONCILIATION_INTERVAL_MS
               value: "120000"
-            - name: STRIMZI_OPERATION_TIMEOUT_MS
-              value: "300000"
             - name: STRIMZI_OPERATION_TIMEOUT_MS
               value: "300000"
             - name: STRIMZI_GC_LOG_ENABLED

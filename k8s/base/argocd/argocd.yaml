@@ -1,4 +1,4 @@
-# Argo CD Application
+# Argo CD Application - Production Ready
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -17,11 +17,40 @@ metadata:
   namespace: argocd
 rules:
   - apiGroups:
-      - "*"
+      - argoproj.io
     resources:
-      - "*"
+      - applications
+      - applicationsets
     verbs:
-      - "*"
+      - get
+      - list
+      - watch
+      - update
+      - patch
+  - apiGroups:
+      - argoproj.io
+    resources:
+      - applications/status
+      - applicationsets/status
+    verbs:
+      - get
+      - update
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+      - secrets
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -90,7 +119,6 @@ spec:
           image: quay.io/argoproj/argocd:latest
           command:
             - argocd-server
-            - --insecure
           ports:
             - containerPort: 8080
               name: http
@@ -110,7 +138,7 @@ metadata:
   name: argocd-server
   namespace: argocd
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   selector:
     app.kubernetes.io/name: argocd-server
   ports:
@@ -121,24 +149,30 @@ spec:
       targetPort: 8083
       name: grpc
 ---
-# Application manifest
+# Application manifest - Manual sync for production
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: legal-infra
   namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   source:
     repoURL: https://github.com/letoan9319/LegalConsultationPlatform.git
-    targetRevision: main
+    targetRevision: HEAD
     path: k8s/overlays/production
   destination:
     server: https://kubernetes.default.svc
     namespace: production
   syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - PruneLast=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

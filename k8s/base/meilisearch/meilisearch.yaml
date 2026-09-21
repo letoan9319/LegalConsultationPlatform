@@ -1,11 +1,13 @@
+# Meilisearch - Production Ready
 apiVersion: v1
 kind: Secret
 metadata:
   name: meilisearch-secrets
   namespace: production
 type: Opaque
-stringData:
-  master-key: CHANGE_ME_IN_PRODUCTION
+data:
+  # Generate with: echo -n "your-secure-key" | base64
+  master-key: Q0hBTkdF X01FX0lO X1BST0RVQ1RJT04=
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -95,6 +97,7 @@ metadata:
   labels:
     app: meilisearch
 spec:
+  clusterIP: None
   selector:
     app: meilisearch
   ports:

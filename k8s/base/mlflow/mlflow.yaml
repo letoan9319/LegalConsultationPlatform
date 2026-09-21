@@ -1,4 +1,4 @@
-# MLflow Tracking Server
+# MLflow - Production Ready
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -10,9 +10,10 @@ metadata:
   name: mlflow-secrets
   namespace: mlops
 type: Opaque
-stringData:
-  aws-access-key: CHANGE_ME
-  aws-secret-key: CHANGE_ME
+data:
+  # Generate with: echo -n "your-key" | base64
+  aws-access-key: Q0hBTkdFX0tFWQ==
+  aws-secret-key: Q0hBTkdFX1NFQ1JFVF9LRVk=
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -38,7 +39,10 @@ spec:
               name: http
           env:
             - name: MLFLOW_TRACKING_URI
-              value: "postgresql://legaluser:CHANGE_ME@postgresql.production.svc:5432/mlflow"
+              valueFrom:
+                secretKeyRef:
+                  name: mlflow-db-secrets
+                  key: connection-string
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
@@ -76,6 +80,16 @@ spec:
             periodSeconds: 10
 ---
 apiVersion: v1
+kind: Secret
+metadata:
+  name: mlflow-db-secrets
+  namespace: mlops
+type: Opaque
+data:
+  # Generate with: echo -n "postgresql://user:pass@host:5432/db" | base64
+  connection-string: cG9zdGdyZXNxbDovL2xlZ2FsdXNlcjpDSEFOR0VfUEE3UzdTOEBwb3N0Z3Jlc3FsLnByb2R1Y3Rpb24uc3ZjOjU0MzIvbWxm
+---
+apiVersion: v1
 kind: Service
 metadata:
   name: mlflow
@@ -83,6 +97,7 @@ metadata:
   labels:
     app: mlflow
 spec:
+  clusterIP: None
   selector:
     app: mlflow
   ports:
