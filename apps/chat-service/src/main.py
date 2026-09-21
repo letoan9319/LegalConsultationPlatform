@@ -4,8 +4,7 @@ from .config import settings
 from .db.connection import engine
 from .redis.connection import init_redis, close_redis
 from .kafka.manager import init_kafka, close_kafka
-from .ws.manager import ConnectionManager
-from .ws.handlers import init_manager
+from .ws.manager import ConnectionManager, init_manager
 from .api.routes import sessions, messages
 from .ws.handlers import router as ws_router
 import redis.asyncio as redis

@@ -1,11 +1,8 @@
 from fastapi import WebSocket
-from typing import Dict, Set, Optional, TYPE_CHECKING
+from typing import Dict, Set, Optional
 import redis.asyncio as redis
 import json
 import asyncio
-
-if TYPE_CHECKING:
-    from .manager import ConnectionManager
 
 _manager: Optional["ConnectionManager"] = None
 
@@ -95,10 +92,14 @@ class ConnectionManager:
             await self.pubsub.close()
 
 
-def set_manager(m: ConnectionManager):
+def set_manager(m: "ConnectionManager"):
     global _manager
     _manager = m
 
 
-def get_manager() -> Optional[ConnectionManager]:
+def init_manager(m: "ConnectionManager"):
+    set_manager(m)
+
+
+def get_manager() -> Optional["ConnectionManager"]:
     return _manager
