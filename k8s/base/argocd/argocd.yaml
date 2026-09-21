@@ -84,7 +84,7 @@ spec:
       serviceAccountName: argocd-application-controller
       containers:
         - name: argocd-application-controller
-          image: quay.io/argoproj/argocd:latest
+          image: quay.io/argoproj/argocd:v2.8.0
           command:
             - argocd-application-controller
             - --statusProcessors
@@ -116,7 +116,7 @@ spec:
     spec:
       containers:
         - name: argocd-server
-          image: quay.io/argoproj/argocd:latest
+          image: quay.io/argoproj/argocd:v2.8.0
           command:
             - argocd-server
           ports:
@@ -149,7 +149,7 @@ spec:
       targetPort: 8083
       name: grpc
 ---
-# Application manifest - Manual sync for production
+# Application manifest - Manual sync with pinned revision
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -161,7 +161,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/letoan9319/LegalConsultationPlatform.git
-    targetRevision: HEAD
+    targetRevision: main
     path: k8s/overlays/production
   destination:
     server: https://kubernetes.default.svc

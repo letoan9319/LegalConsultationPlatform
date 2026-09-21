@@ -1,19 +1,32 @@
 # MLflow - Production Ready
+# NOTE: Secrets should be managed via External Secrets Operator or Vault.
+# Generate actual secrets and apply separately.
+# This file references secrets that MUST be created before deployment.
+---
+# Secrets to be created separately:
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: mlflow-secrets
+#   namespace: mlops
+# type: Opaque
+# data:
+#   aws-access-key: <base64-encoded-key>
+#   aws-secret-key: <base64-encoded-secret>
+#
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: mlflow-db-secrets
+#   namespace: mlops
+# type: Opaque
+# data:
+#   connection-string: <base64-encoded-pg-uri>
+---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: mlops
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: mlflow-secrets
-  namespace: mlops
-type: Opaque
-data:
-  # Generate with: echo -n "your-key" | base64
-  aws-access-key: Q0hBTkdFX0tFWQ==
-  aws-secret-key: Q0hBTkdFX1NFQ1JFVF9LRVk=
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -33,7 +46,7 @@ spec:
     spec:
       containers:
         - name: mlflow
-          image: ghcr.io/mlflow/mlflow:latest
+          image: ghcr.io/mlflow/mlflow:v2.10.0
           ports:
             - containerPort: 5000
               name: http
@@ -43,16 +56,19 @@ spec:
                 secretKeyRef:
                   name: mlflow-db-secrets
                   key: connection-string
+                  optional: false
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
                   name: mlflow-secrets
                   key: aws-access-key
+                  optional: false
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
                   name: mlflow-secrets
                   key: aws-secret-key
+                  optional: false
             - name: AWS_DEFAULT_REGION
               value: "ap-hanoi-1"
             - name: MLFLOW_ARTIFACT_ROOT
@@ -78,16 +94,6 @@ spec:
               port: 5000
             initialDelaySeconds: 5
             periodSeconds: 10
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: mlflow-db-secrets
-  namespace: mlops
-type: Opaque
-data:
-  # Generate with: echo -n "postgresql://user:pass@host:5432/db" | base64
-  connection-string: cG9zdGdyZXNxbDovL2xlZ2FsdXNlcjpDSEFOR0VfUEE3UzdTOEBwb3N0Z3Jlc3FsLnByb2R1Y3Rpb24uc3ZjOjU0MzIvbWxm
 ---
 apiVersion: v1
 kind: Service

@@ -1,13 +1,17 @@
 # Meilisearch - Production Ready
-apiVersion: v1
-kind: Secret
-metadata:
-  name: meilisearch-secrets
-  namespace: production
-type: Opaque
-data:
-  # Generate with: echo -n "your-secure-key" | base64
-  master-key: Q0hBTkdF X01FX0lO X1BST0RVQ1RJT04=
+# NOTE: Secrets should be managed via External Secrets Operator or Vault.
+# Generate actual secrets and apply separately.
+# This file uses placeholder values that MUST be replaced before deployment.
+---
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: meilisearch-secrets
+#   namespace: production
+# type: Opaque
+# data:
+#   master-key: <base64-encoded-master-key>
+# Apply with: kubectl apply -f <(yq '...')
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -37,6 +41,7 @@ spec:
                 secretKeyRef:
                   name: meilisearch-secrets
                   key: master-key
+                  optional: false
             - name: MEILI_ENV
               value: "production"
             - name: MEILI_DB_PATH
