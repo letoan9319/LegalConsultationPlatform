@@ -1,0 +1,39 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: aiops-alerts
+  namespace: production
+spec:
+  groups:
+    - name: aiops.anomaly
+      rules:
+        - alert: HighAnomalyScore
+          expr: anomaly_score > 0.8
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High anomaly score detected"
+            description: "Anomaly score {{ $value }} exceeds threshold"
+        - alert: ServiceDegraded
+          expr: service_health_score < 50
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Service health degraded"
+        - alert: ConsumerLagHigh
+          expr: kafka_consumer_lag > 1000
+          for: 3m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Kafka consumer lag is high"
+            description: "Consumer group {{ $labels.group }} has lag {{ $value }}"
+        - alert: ErrorRateHigh
+          expr: error_rate > 0.05
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Error rate exceeds 5%"

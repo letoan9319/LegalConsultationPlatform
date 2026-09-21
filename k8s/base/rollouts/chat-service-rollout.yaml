@@ -1,0 +1,57 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: chat-service
+  namespace: production
+spec:
+  replicas: 3
+  strategy:
+    canary:
+      canaryService: chat-service-canary
+      stableService: chat-service-stable
+      trafficRouting:
+        nginx:
+          stableIngress: chat-service-ingress
+      steps:
+        - setWeight: 5
+        - pause: {duration: 1m}
+        - setWeight: 20
+        - pause: {duration: 5m}
+        - setWeight: 50
+        - pause: {duration: 10m}
+        - setWeight: 80
+        - pause: {duration: 5m}
+        - setWeight: 100
+      analysis:
+        templates:
+          - templateName: anomaly-analysis
+        startingStep: 2
+        args:
+          - name: service-name
+            value: chat-service
+  selector:
+    matchLabels:
+      app: chat-service
+  template:
+    metadata:
+      labels:
+        app: chat-service
+    spec:
+      containers:
+        - name: chat-service
+          image: ghcr.io/legal-consult/chat-service:latest
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10

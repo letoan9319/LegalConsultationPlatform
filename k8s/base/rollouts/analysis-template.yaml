@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: anomaly-analysis
+  namespace: production
+spec:
+  args:
+    - name: service-name
+  metrics:
+    - name: anomaly-score
+      interval: 1m
+      successCondition: result[0] < 0.7
+      failureLimit: 3
+      provider:
+        job:
+          spec:
+            parallelism: 1
+            completions: 1
+            ttlSecondsAfterFinished: 600
+            template:
+              spec:
+                serviceAccountName: analysis-sa
+                containers:
+                  - name: analysis
+                    image: ghcr.io/legal-consult/ai-analyzer:latest
+                    command: [python, analyze.py]
+                    env:
+                      - name: SERVICE_NAME
+                        value: "{{args.service-name}}"
+                      - name: MLFLOW_TRACKING_URI
+                        value: "http://mlflow:5000"
+                restartPolicy: Never

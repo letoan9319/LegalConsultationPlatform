@@ -1,0 +1,26 @@
+mlflow:
+  tracking_uri: http://mlflow:5000
+  experiment_name: legal-aiops-anomaly-detection
+  artifact_location: s3://legal-ml-artifacts/models/
+
+data:
+  input_topic: telemetry.metrics
+  feature_window_size: 30
+  batch_size: 1000
+
+features:
+  latency_threshold_ms: 100
+  error_rate_threshold: 0.05
+  throughput_min: 10
+
+model:
+  algorithm: isolation_forest
+  contamination: 0.01
+  n_estimators: 100
+  random_state: 42
+
+training:
+  schedule: "0 2 * * *"
+  validation_split: 0.2
+  test_split: 0.1
+  retrain_threshold_days: 7
