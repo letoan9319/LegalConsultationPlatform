@@ -1,0 +1,23 @@
+{
+  "type": "record",
+  "name": "TelemetryMetricEvent",
+  "namespace": "com.legal.consultation",
+  "version": "1",
+  "fields": [
+    {"name": "service", "type": "string"},
+    {"name": "instance_id", "type": "string"},
+    {"name": "metrics", "type": {
+      "type": "record",
+      "name": "Metrics",
+      "fields": [
+        {"name": "msg_latency_p99_ms", "type": "double"},
+        {"name": "ai_confidence", "type": "double"},
+        {"name": "ai_response_time_ms", "type": "double"},
+        {"name": "active_sessions", "type": "int"},
+        {"name": "msg_throughput", "type": "double"},
+        {"name": "error_rate", "type": "double"}
+      ]
+    }},
+    {"name": "timestamp", "type": "string"}
+  ]
+}

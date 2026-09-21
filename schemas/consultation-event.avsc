@@ -1,0 +1,50 @@
+{
+  "type": "record",
+  "name": "ConsultationEvent",
+  "namespace": "com.legal.consultation",
+  "version": "2",
+  "fields": [
+    {"name": "event_type", "type": {
+      "type": "enum",
+      "name": "ConsultationEventType",
+      "symbols": ["CREATED", "ASSIGNED", "STARTED", "WAITING_PAYMENT", "COMPLETED", "CANCELLED", "EXPIRED", "ESCALATED"]
+    }},
+    {"name": "session_id", "type": "string"},
+    {"name": "customer_id", "type": "string"},
+    {"name": "lawyer_id", "type": ["null", "string"], "default": null},
+    {"name": "legal_domain", "type": {
+      "type": "enum",
+      "name": "LegalDomain",
+      "symbols": ["CIVIL", "CRIMINAL", "LAND", "LABOR", "COMMERCIAL", "FAMILY", "INTELLECTUAL", "TAX", "ADMINISTRATIVE", "INSURANCE"]
+    }},
+    {"name": "session_type", "type": {
+      "type": "enum",
+      "name": "SessionType",
+      "symbols": ["INITIAL", "FOLLOWUP", "EMERGENCY"]
+    }},
+    {"name": "status", "type": "string"},
+    {"name": "pricing_type", "type": ["null", {
+      "type": "enum",
+      "name": "PricingType",
+      "symbols": ["FREE", "PAID_HOURLY", "PAID_FIXED", "SUBSCRIPTION"]
+    }], "default": null},
+    {"name": "price", "type": ["null", {
+      "type": "record",
+      "name": "Price",
+      "fields": [
+        {"name": "amount", "type": "decimal(12,2)"},
+        {"name": "currency", "type": "string", "default": "VND"}
+      ]
+    }], "default": null},
+    {"name": "timestamp", "type": "string"},
+    {"name": "metadata", "type": {
+      "type": "record",
+      "name": "EventMetadata",
+      "fields": [
+        {"name": "source", "type": "string"},
+        {"name": "version", "type": "string"},
+        {"name": "reason", "type": ["null", "string"], "default": null}
+      ]
+    }}
+  ]
+}

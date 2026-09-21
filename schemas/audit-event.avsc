@@ -1,0 +1,38 @@
+{
+  "type": "record",
+  "name": "AuditEvent",
+  "namespace": "com.legal.consultation",
+  "version": "1",
+  "fields": [
+    {"name": "event_id", "type": "string"},
+    {"name": "event_type", "type": {
+      "type": "enum",
+      "name": "AuditEventType",
+      "symbols": ["USER_LOGIN", "USER_LOGOUT", "SESSION_CREATED", "SESSION_VIEWED", "MESSAGE_SENT", "MESSAGE_READ", "DOCUMENT_ACCESSED", "DOCUMENT_DOWNLOADED", "AI_QUERY", "AI_RESPONSE", "DATA_EXPORTED", "PERMISSION_CHANGED", "PRIVACY_SETTING_CHANGED"]
+    }},
+    {"name": "user_id", "type": "string"},
+    {"name": "user_role", "type": {
+      "type": "enum",
+      "name": "UserRole",
+      "symbols": ["CUSTOMER", "LAWYER", "ADMIN"]
+    }},
+    {"name": "session_id", "type": ["null", "string"], "default": null},
+    {"name": "resource_type", "type": "string"},
+    {"name": "resource_id", "type": ["null", "string"], "default": null},
+    {"name": "action", "type": {
+      "type": "enum",
+      "name": "ActionType",
+      "symbols": ["CREATE", "READ", "UPDATE", "DELETE", "EXPORT"]
+    }},
+    {"name": "ip_address", "type": "string"},
+    {"name": "user_agent", "type": "string"},
+    {"name": "content_hash", "type": ["null", "string"], "default": null},
+    {"name": "result", "type": {
+      "type": "enum",
+      "name": "AuditResult",
+      "symbols": ["SUCCESS", "FAILURE", "PARTIAL"]
+    }, "default": "SUCCESS"},
+    {"name": "error_code", "type": ["null", "string"], "default": null},
+    {"name": "timestamp", "type": "string"}
+  ]
+}

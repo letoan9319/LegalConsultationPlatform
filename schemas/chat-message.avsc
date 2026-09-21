@@ -1,0 +1,45 @@
+{
+  "type": "record",
+  "name": "ChatMessageEvent",
+  "namespace": "com.legal.consultation",
+  "version": "1",
+  "fields": [
+    {"name": "message_id", "type": "string"},
+    {"name": "session_id", "type": "string"},
+    {"name": "sender_type", "type": {
+      "type": "enum",
+      "name": "SenderType",
+      "symbols": ["CUSTOMER", "LAWYER", "AI_ASSISTANT", "SYSTEM"]
+    }},
+    {"name": "sender_id", "type": ["null", "string"], "default": null},
+    {"name": "content", "type": "string"},
+    {"name": "content_type", "type": {
+      "type": "enum",
+      "name": "ContentType",
+      "symbols": ["TEXT", "IMAGE", "DOCUMENT", "LINK", "SYSTEM_EVENT"]
+    }, "default": "TEXT"},
+    {"name": "attachments", "type": {
+      "type": "array",
+      "items": {
+        "type": "record",
+        "name": "Attachment",
+        "fields": [
+          {"name": "file_url", "type": "string"},
+          {"name": "file_name", "type": "string"},
+          {"name": "file_type", "type": "string"},
+          {"name": "file_size", "type": "long"}
+        ]
+      }
+    }, "default": []},
+    {"name": "timestamp", "type": "string"},
+    {"name": "metadata", "type": {
+      "type": "record",
+      "name": "MessageMetadata",
+      "fields": [
+        {"name": "source", "type": "string"},
+        {"name": "version", "type": "string"},
+        {"name": "trace_id", "type": ["null", "string"], "default": null}
+      ]
+    }}
+  ]
+}

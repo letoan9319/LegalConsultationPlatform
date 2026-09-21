@@ -1,0 +1,232 @@
+# Kafka Cluster (Strimzi)
+apiVersion: kafka.strimzi.io/v1beta2
+kind: Kafka
+metadata:
+  name: legal-kafka
+  namespace: production
+spec:
+  kafka:
+    version: 3.6.0
+    replicas: 2
+    listeners:
+      - name: plain
+        port: 9092
+        type: internal
+        tls: false
+      - name: tls
+        port: 9093
+        type: internal
+        tls: true
+        authentication:
+          type: tls
+      - name: external
+        port: 9094
+        type: loadbalancer
+        tls: false
+    config:
+      offsets.topic.replication.factor: 2
+      transaction.state.log.replication.factor: 2
+      transaction.state.log.min.isr: 1
+      num.network.threads: 3
+      num.io.threads: 8
+      socket.send.buffer.bytes: 102400
+      socket.receive.buffer.bytes: 102400
+      socket.request.max.bytes: 104857600
+      log.retention.hours: 168
+      log.retention.check.interval.ms: 300000
+      log.segment.bytes: 1073741824
+      auto.create.topics.enable: false
+    storage:
+      type: persistent-claim
+      size: 10Gi
+      deleteClaim: false
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: "1"
+        memory: 2Gi
+  zookeeper:
+    replicas: 3
+    storage:
+      type: persistent-claim
+      size: 2Gi
+      deleteClaim: false
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+  entityOperator:
+    topicOperator:
+      resources:
+        requests:
+          cpu: 200m
+          memory: 256Mi
+    userOperator:
+      resources:
+        requests:
+          cpu: 200m
+          memory: 256Mi
+---
+# Kafka Topics
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: chat.message
+  labels:
+    strimzi.io/cluster: legal-kafka
+spec:
+  partitions: 6
+  replicas: 2
+  config:
+    retention.ms: 604800000
+    cleanup.policy: delete
+    min.insync.replicas: 1
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: consultation.events
+  labels:
+    strimzi.io/cluster: legal-kafka
+spec:
+  partitions: 12
+  replicas: 2
+  config:
+    retention.ms: 2592000000
+    cleanup.policy: delete
+    min.insync.replicas: 1
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: ai.request
+  labels:
+    strimzi.io/cluster: legal-kafka
+spec:
+  partitions: 6
+  replicas: 2
+  config:
+    retention.ms: 7776000000
+    cleanup.policy: delete
+    min.insync.replicas: 1
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: audit.log
+  labels:
+    strimzi.io/cluster: legal-kafka
+spec:
+  partitions: 6
+  replicas: 2
+  config:
+    retention.ms: 31536000000
+    cleanup.policy: delete
+    min.insync.replicas: 1
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: telemetry.metrics
+  labels:
+    strimzi.io/cluster: legal-kafka
+spec:
+  partitions: 3
+  replicas: 1
+  config:
+    retention.ms: 604800000
+    cleanup.policy: delete
+    min.insync.replicas: 1
+---
+# Kafka Users
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaUser
+metadata:
+  name: chat-service-producer
+  labels:
+    strimzi.io/cluster: legal-kafka
+spec:
+  authentication:
+    type: tls
+  authorization:
+    type: simple
+    acls:
+      - resource:
+          type: topic
+          name: chat.message
+        operations:
+          - Write
+          - Describe
+      - resource:
+          type: topic
+          name: consultation.events
+        operations:
+          - Write
+          - Describe
+      - resource:
+          type: topic
+          name: ai.request
+        operations:
+          - Write
+          - Describe
+      - resource:
+          type: topic
+          name: audit.log
+        operations:
+          - Write
+          - Describe
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaUser
+metadata:
+  name: audit-consumer
+  labels:
+    strimzi.io/cluster: legal-kafka
+spec:
+  authentication:
+    type: tls
+  authorization:
+    type: simple
+    acls:
+      - resource:
+          type: topic
+          name: audit.log
+        operations:
+          - Read
+          - Describe
+      - resource:
+          type: topic
+          name: chat.message
+        operations:
+          - Read
+          - Describe
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaUser
+metadata:
+  name: ai-consumer
+  labels:
+    strimzi.io/cluster: legal-kafka
+spec:
+  authentication:
+    type: tls
+  authorization:
+    type: simple
+    acls:
+      - resource:
+          type: topic
+          name: ai.request
+        operations:
+          - Read
+          - Describe
+      - resource:
+          type: topic
+          name: ai.response
+        operations:
+          - Write
+          - Describe

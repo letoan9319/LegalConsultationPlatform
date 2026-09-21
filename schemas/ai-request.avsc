@@ -1,0 +1,41 @@
+{
+  "type": "record",
+  "name": "AIRequestEvent",
+  "namespace": "com.legal.consultation",
+  "version": "1",
+  "fields": [
+    {"name": "request_id", "type": "string"},
+    {"name": "session_id", "type": "string"},
+    {"name": "user_id", "type": "string"},
+    {"name": "request_type", "type": {
+      "type": "enum",
+      "name": "AIRequestType",
+      "symbols": ["LEGAL_REFERENCE", "CONTRACT_DRAFT", "DOCUMENT_SUMMARY", "SESSION_SUMMARY", "QUESTION_ANSWER", "SIMILAR_CASE"]
+    }},
+    {"name": "query", "type": "string"},
+    {"name": "context", "type": {
+      "type": "record",
+      "name": "AIContext",
+      "fields": [
+        {"name": "legal_domain", "type": ["null", "string"], "default": null},
+        {"name": "previous_messages", "type": {"type": "array", "items": "string"}, "default": []},
+        {"name": "attached_documents", "type": {"type": "array", "items": "string"}, "default": []}
+      ]
+    }},
+    {"name": "mode", "type": {
+      "type": "enum",
+      "name": "AIMode",
+      "symbols": ["FAST", "BALANCED", "THOROUGH"]
+    }, "default": "BALANCED"},
+    {"name": "timestamp", "type": "string"},
+    {"name": "metadata", "type": {
+      "type": "record",
+      "name": "AIRequestMetadata",
+      "fields": [
+        {"name": "source", "type": "string"},
+        {"name": "client_version", "type": "string"},
+        {"name": "priority", "type": "int", "default": 5}
+      ]
+    }}
+  ]
+}

@@ -1,0 +1,199 @@
+# Strimzi Kafka Operator
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: strimzi
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: strimzi-cluster-operator
+  namespace: strimzi
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: strimzi-cluster-operator-global
+  namespace: strimzi
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+      - secrets
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - services
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - delete
+      - patch
+      - update
+  - apiGroups:
+      - ""
+    resources:
+      - endpoints
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - persistentvolumeclaims
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - get
+      - list
+      - watch
+      - delete
+      - patch
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - delete
+      - patch
+      - update
+  - apiGroups:
+      - apps
+    resources:
+      - statefulsets
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - delete
+      - patch
+      - update
+  - apiGroups:
+      - networking.k8s.io
+    resources:
+      - ingresses
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - delete
+      - patch
+      - update
+  - apiGroups:
+      - route.openshift.io
+    resources:
+      - routes
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - delete
+      - patch
+      - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: strimzi-cluster-operator-binding
+roleRef:
+  name: strimzi-cluster-operator-global
+  kind: ClusterRole
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+  - name: strimzi-cluster-operator
+    namespace: strimzi
+    kind: ServiceAccount
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: strimzi-cluster-operator
+  namespace: strimzi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: strimzi-cluster-operator
+      strimzi.io/kind: cluster-operator
+  template:
+    metadata:
+      labels:
+        name: strimzi-cluster-operator
+        strimzi.io/kind: cluster-operator
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+    spec:
+      serviceAccountName: strimzi-cluster-operator
+      containers:
+        - name: strimzi-operator
+          image: quay.io/strimzi/operator:0.37.0
+          args:
+            - /opt/strimzi/bin/cluster_operator_run.sh
+          env:
+            - name: STRIMZI_NAMESPACE
+              value: production
+            - name: STRIMZI_FULL_RECONCILIATION_INTERVAL_MS
+              value: "120000"
+            - name: STRIMZI_OPERATION_TIMEOUT_MS
+              value: "300000"
+            - name: STRIMZI_OPERATION_TIMEOUT_MS
+              value: "300000"
+            - name: STRIMZI_GC_LOG_ENABLED
+              value: "false"
+            - name: STRIMZI_KAFKA_IMAGES
+              value: |
+                3.6.0=quay.io/strimzi/kafka:0.37.0-kafka-3.6.0
+            - name: STRIMZI_KAFKA_CONNECT_IMAGES
+              value: |
+                3.6.0=quay.io/strimzi/kafka-connect:0.37.0-kafka-3.6.0
+            - name: STRIMZI_KAFKA_MIRROR_MAKER_2_IMAGES
+              value: |
+                3.6.0=quay.io/strimzi/mirror-maker-2:0.37.0-kafka-3.6.0
+            - name: STRIMZI_TOPIC_OPERATOR_IMAGES
+              value: |
+                3.6.0=quay.io/strimzi/topic-operator:0.37.0
+            - name: STRIMZI_USER_OPERATOR_IMAGES
+              value: |
+                3.6.0=quay.io/strimzi/user-operator:0.37.0
+            - name: STRIMZI_KAFKA_EXPORTER_IMAGES
+              value: |
+                3.6.0=quay.io/strimzi/kafka:0.37.0-kafka-3.6.0
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

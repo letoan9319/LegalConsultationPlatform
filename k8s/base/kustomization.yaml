@@ -21,6 +21,22 @@ resources:
   # Redis
   - redis/redis.yaml
 
+  # Meilisearch
+  - meilisearch/meilisearch.yaml
+
+  # Kafka (Strimzi)
+  - kafka/strimzi-operator.yaml
+  - kafka/kafka-cluster.yaml
+
+  # Schema Registry
+  - schema-registry/schema-registry.yaml
+
+  # Argo CD
+  - argocd/argocd.yaml
+
+  # MLflow
+  - mlflow/mlflow.yaml
+
 configMapGenerator:
   - name: cluster-info
     literals:
