@@ -78,9 +78,16 @@ kubeconfig.local
 *.log
 logs/
 
-# Local development
-.env.local
-.env.*.local
+# Graphify outputs (generated)
+graphify-out/
+
+# Environment files with secrets
+.env.docker
+.env.production
+
+# Phase documentation (keep in repo)
+docs/*.md
+!docs/README.md
 
 # Temporary files
 *.tmp
