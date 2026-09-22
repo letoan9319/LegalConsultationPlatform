@@ -37,6 +37,20 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str, token: str):
         await websocket.close(code=4002, reason="Invalid role in token")
         return
 
+    # Verify user exists and is active in database
+    from ..api.dependencies import get_current_user
+    try:
+        user = await get_current_user(user_id, db=None)  # Token already validated
+        if not user:
+            await websocket.close(code=4001, reason="User not found")
+            return
+        if not user.is_active:
+            await websocket.close(code=4002, reason="User account is disabled")
+            return
+    except Exception:
+        await websocket.close(code=4001, reason="User verification failed")
+        return
+
     # Authorization: Verify user is part of this session via database query
     # This prevents unauthorized access to other users' sessions
     from ..db.connection import get_db

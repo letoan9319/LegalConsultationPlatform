@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 from ...db.connection import get_db
 from ...db.repositories import SessionRepository
-from ...models import User, SessionStatus, LegalDomain, SessionType
+from ...models import User, UserRole, SessionStatus, LegalDomain, SessionType
 from ...api.dependencies import get_current_user
 from ...kafka.manager import get_kafka_producer
 
@@ -29,16 +29,17 @@ async def create_session(
     session = await repo.create(session_data)
     await db.commit()
 
-    # Publish Kafka event
+    # Publish Kafka event (optional - session is already created)
     async with get_kafka_producer() as producer:
-        await producer.send_consultation_event(
-            session_id=str(session.id),
-            customer_id=str(current_user.id),
-            lawyer_id=None,
-            event_type="CREATED",
-            legal_domain=legal_domain.value,
-            status=SessionStatus.CREATED.value,
-        )
+        if producer:
+            await producer.send_consultation_event(
+                session_id=str(session.id),
+                customer_id=str(current_user.id),
+                lawyer_id=None,
+                event_type="CREATED",
+                legal_domain=legal_domain.value,
+                status=SessionStatus.CREATED.value,
+            )
 
     return {"session_id": str(session.id), "status": session.status}
 
@@ -55,8 +56,12 @@ async def get_session(
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    # Check access
-    if session.customer_id != current_user.id and session.lawyer_id != current_user.id:
+    # Check access: allow customer, lawyer of session, or admin
+    is_customer = session.customer_id == current_user.id
+    is_lawyer = session.lawyer_id == current_user.id
+    is_admin = current_user.role == UserRole.ADMIN
+
+    if not (is_customer or is_lawyer or is_admin):
         raise HTTPException(status_code=403, detail="Access denied")
 
     return {

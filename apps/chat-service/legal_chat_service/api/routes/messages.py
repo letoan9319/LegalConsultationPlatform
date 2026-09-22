@@ -55,16 +55,17 @@ async def send_message(
     )
     await db.commit()
 
-    # Publish to Kafka
+    # Publish to Kafka (optional - message is already saved to DB)
     async with get_kafka_producer() as producer:
-        await producer.send_chat_message(
-            message_id=str(message.id),
-            session_id=session_id,
-            sender_type=sender_type.value,
-            sender_id=str(current_user.id),
-            content=request.content,
-            content_type=request.content_type.value,
-        )
+        if producer:
+            await producer.send_chat_message(
+                message_id=str(message.id),
+                session_id=session_id,
+                sender_type=sender_type.value,
+                sender_id=str(current_user.id),
+                content=request.content,
+                content_type=request.content_type.value,
+            )
 
     # Broadcast via WebSocket
     manager = get_manager()

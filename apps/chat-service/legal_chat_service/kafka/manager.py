@@ -29,4 +29,8 @@ async def close_kafka():
 
 @asynccontextmanager
 async def get_kafka_producer():
-    yield kafka_producer
+    if kafka_producer is None or not _kafka_available:
+        log.warning("kafka_producer_unavailable")
+        yield None
+    else:
+        yield kafka_producer
