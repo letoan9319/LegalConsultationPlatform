@@ -41,14 +41,16 @@ Kết nối luật sư với khách hàng qua real-time chat, hỗ trợ tìm ki
 .
 ├── apps/
 │   └── chat-service/           # FastAPI REST + WebSocket
+│       └── legal_chat_service/ # Python package source
 ├── services/
 │   ├── audit-consumer/         # Audit log persistence
 │   ├── ai-consumer/           # AI request processing (RAG)
 │   ├── metrics-consumer/       # ML anomaly detection
 │   ├── notifier-service/      # Push notifications
-│   ├── search-indexer/        # Meilisearch indexing
+│   ├── search-indexer/         # Meilisearch indexing
 │   └── ai-analyzer/           # ML rollback triggers
 ├── ml-engine/                  # ML training pipeline
+│   └── src/                   # ML source code
 ├── schemas/                    # Avro schemas
 ├── kafka-connect/              # Kafka Connect CDC configs
 └── k8s/                       # Kubernetes manifests
@@ -66,15 +68,20 @@ Kết nối luật sư với khách hàng qua real-time chat, hỗ trợ tìm ki
 ### Local Development
 
 ```bash
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# or: venv\Scripts\activate  # Windows
+
 # Install dependencies
 cd apps/chat-service
-pip install -r requirements.txt
+pip install -e .
 
 # Run chat service
-uvicorn src.main:app --reload --port 8000
+uvicorn legal_chat_service.main:app --reload --port 8000
 
 # Run tests
-pytest tests/ -v
+cd apps/chat-service && pytest tests/ -v
 ```
 
 ### Docker

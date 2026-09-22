@@ -53,19 +53,23 @@
 legal-consult-aiops/
 ├── apps/                          # Application services
 │   ├── chat-service/             # FastAPI REST + WebSocket
-│   └── ai-service/               # AI processing (planned)
+│   │   ├── legal_chat_service/ # Python package source
+│   │   └── tests/             # Test suite
+│   └── ai-service/             # AI processing (planned)
 ├── services/                      # Kafka consumer services
 │   ├── audit-consumer/           # Audit log persistence
 │   ├── ai-consumer/              # AI request processing
 │   └── metrics-consumer/         # ML anomaly detection
 ├── ml-engine/                     # ML training pipeline
+│   ├── src/                    # ML source code
+│   └── tests/                  # ML test suite
 ├── schemas/                       # Avro schemas
 ├── kafka-connect/                # Kafka Connect configs
 ├── k8s/                          # Kubernetes manifests
 │   ├── base/                     # Base kustomize
 │   └── overlays/                 # Environment-specific
 ├── docs/                         # Documentation
-└── tests/                        # Test suites
+└── tests/                        # Test suites (chaos, e2e, integration, performance, unit)
 ```
 
 ## Environment Variables
@@ -83,13 +87,15 @@ legal-consult-aiops/
 
 ### Development
 ```bash
-# Run chat service locally
+# Run chat service locally (package name: legal_chat_service)
 cd apps/chat-service
-pip install -r requirements.txt
-uvicorn src.main:app --reload --port 8000
+pip install -e .
+uvicorn legal_chat_service.main:app --reload --port 8000
 
 # Run tests
-pytest tests/ -v
+cd apps/chat-service && pytest tests/ -v
+# Or for ML tests:
+cd ml-engine && pytest tests/ -v
 ```
 
 ### Docker
