@@ -1,5 +1,5 @@
 import pytest
-from ml_engine.src.features.extractor import TelemetryFeatureExtractor
+from features.extractor import TelemetryFeatureExtractor
 
 
 class TestTelemetryFeatureExtractor:

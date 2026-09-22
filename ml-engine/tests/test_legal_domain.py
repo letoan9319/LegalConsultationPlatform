@@ -1,5 +1,5 @@
 import pytest
-from ml_engine.src.features.legal_domain import LegalDomainClassifier
+from features.legal_domain import LegalDomainClassifier
 
 
 class TestLegalDomainClassifier:

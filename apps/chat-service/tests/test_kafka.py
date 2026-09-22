@@ -1,5 +1,5 @@
 import pytest
-from app.kafka.producer import LegalKafkaProducer
+from legal_chat_service.kafka.producer import LegalKafkaProducer
 
 
 @pytest.mark.asyncio

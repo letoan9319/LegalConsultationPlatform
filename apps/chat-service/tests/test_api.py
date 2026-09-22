@@ -1,6 +1,6 @@
 import pytest
 from httpx import AsyncClient, ASGITransport
-from app.main import app
+from legal_chat_service.main import app, health_check, root
 
 
 @pytest.mark.asyncio
@@ -20,3 +20,4 @@ async def test_root():
         assert response.status_code == 200
         data = response.json()
         assert data["message"] == "Legal Consultation Chat Service"
+        assert "version" in data

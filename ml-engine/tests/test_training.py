@@ -1,5 +1,5 @@
 import pytest
-from ml_engine.src.training.isolation_forest import IsolationForestTrainer
+from training.isolation_forest import IsolationForestTrainer
 
 
 class TestIsolationForestTrainer:
