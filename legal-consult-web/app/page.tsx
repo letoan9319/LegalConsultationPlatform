@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, lazy, Suspense } from 'react'
-import Link from 'next/link'
+import { useState } from 'react'
+// Link import for future navigation
 
 const LEGAL_DOMAINS = [
   { value: 'civil', label: 'Civil Law' },
@@ -48,36 +48,6 @@ export default function LandingPage() {
     e.preventDefault()
     setIsLoading(true)
     const supabase = await getSupabase()
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullName, role },
-      },
-    })
-    if (error) {
-      alert(error.message)
-    } else if (data.user) {
-      window.location.href = '/dashboard'
-    }
-    setIsLoading(false)
-  }
-
-  async function handleLogin(e: React.FormEvent) {
-    e.preventDefault()
-    setIsLoading(true)
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) {
-      alert(error.message)
-    } else {
-      window.location.href = '/dashboard'
-    }
-    setIsLoading(false)
-  }
-
-  async function handleRegister(e: React.FormEvent) {
-    e.preventDefault()
-    setIsLoading(true)
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
