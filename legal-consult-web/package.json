@@ -14,9 +14,12 @@
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/ssr": "^0.3.0",
     "@supabase/supabase-js": "^2.43.0",
+    "autoprefixer": "^10.4.19",
     "next": "14.2.0",
+    "postcss": "^8.4.38",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
+    "tailwindcss": "^3.4.3",
     "ai": "^3.0.0",
     "groq-sdk": "^0.5.0",
     "@qdrant/js-client-rest": "^1.9.0"
@@ -25,10 +28,7 @@
     "@types/node": "^20.12.0",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
-    "autoprefixer": "^10.4.19",
-    "postcss": "^8.4.38",
     "supabase": "^1.165.0",
-    "tailwindcss": "^3.4.3",
     "typescript": "^5.4.5"
   }
 }
