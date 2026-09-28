@@ -1,8 +1,0 @@
-{
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "cd legal-consult-web && npm install && npm run build",
-  "installCommand": "cd legal-consult-web && npm install",
-  "outputDirectory": "legal-consult-web/.next",
-  "framework": "nextjs",
-  "regions": ["sin1"]
-}
